@@ -1,0 +1,128 @@
+# github.com/Masterminds/semver v1.5.0
+github.com/Masterminds/semver
+# github.com/PuerkitoBio/purell v1.1.1
+github.com/PuerkitoBio/purell
+# github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578
+github.com/PuerkitoBio/urlesc
+# github.com/asaskevich/govalidator v0.0.0-20200108200545-475eaeb16496
+github.com/asaskevich/govalidator
+# github.com/dgrijalva/jwt-go v3.2.0+incompatible
+github.com/dgrijalva/jwt-go
+# github.com/emicklei/go-restful v2.12.0+incompatible
+github.com/emicklei/go-restful
+github.com/emicklei/go-restful/log
+# github.com/gardener/controller-manager-library v0.1.1-0.20200522074054-e87de9bcc2f7
+github.com/gardener/controller-manager-library/pkg/certmgmt
+github.com/gardener/controller-manager-library/pkg/certs
+github.com/gardener/controller-manager-library/pkg/config
+github.com/gardener/controller-manager-library/pkg/configmain
+github.com/gardener/controller-manager-library/pkg/ctxutil
+github.com/gardener/controller-manager-library/pkg/logger
+github.com/gardener/controller-manager-library/pkg/server
+github.com/gardener/controller-manager-library/pkg/utils
+github.com/gardener/controller-manager-library/pkg/utils/pkiutil
+# github.com/ghodss/yaml v1.0.0
+github.com/ghodss/yaml
+# github.com/go-openapi/analysis v0.19.10
+github.com/go-openapi/analysis
+github.com/go-openapi/analysis/internal
+# github.com/go-openapi/errors v0.19.4
+github.com/go-openapi/errors
+# github.com/go-openapi/jsonpointer v0.19.3
+github.com/go-openapi/jsonpointer
+# github.com/go-openapi/jsonreference v0.19.3
+github.com/go-openapi/jsonreference
+# github.com/go-openapi/loads v0.19.4
+github.com/go-openapi/loads
+# github.com/go-openapi/runtime v0.19.15
+github.com/go-openapi/runtime
+github.com/go-openapi/runtime/client
+github.com/go-openapi/runtime/logger
+github.com/go-openapi/runtime/middleware
+github.com/go-openapi/runtime/middleware/denco
+github.com/go-openapi/runtime/middleware/header
+github.com/go-openapi/runtime/middleware/untyped
+github.com/go-openapi/runtime/security
+# github.com/go-openapi/spec v0.19.6
+github.com/go-openapi/spec
+# github.com/go-openapi/strfmt v0.19.5
+github.com/go-openapi/strfmt
+# github.com/go-openapi/swag v0.19.9
+github.com/go-openapi/swag
+# github.com/go-openapi/validate v0.19.8
+github.com/go-openapi/validate
+# github.com/go-stack/stack v1.8.0
+github.com/go-stack/stack
+# github.com/inconshreveable/mousetrap v1.0.0
+github.com/inconshreveable/mousetrap
+# github.com/json-iterator/go v1.1.9
+github.com/json-iterator/go
+# github.com/konsorten/go-windows-terminal-sequences v1.0.2
+github.com/konsorten/go-windows-terminal-sequences
+# github.com/lestrrat-go/jwx v0.9.0
+github.com/lestrrat-go/jwx/internal/base64
+github.com/lestrrat-go/jwx/internal/option
+github.com/lestrrat-go/jwx/jwa
+github.com/lestrrat-go/jwx/jwk
+# github.com/mailru/easyjson v0.7.1
+github.com/mailru/easyjson/buffer
+github.com/mailru/easyjson/jlexer
+github.com/mailru/easyjson/jwriter
+# github.com/metal-stack/metal-go v0.7.4
+github.com/metal-stack/metal-go
+github.com/metal-stack/metal-go/api/client/firewall
+github.com/metal-stack/metal-go/api/client/image
+github.com/metal-stack/metal-go/api/client/ip
+github.com/metal-stack/metal-go/api/client/machine
+github.com/metal-stack/metal-go/api/client/network
+github.com/metal-stack/metal-go/api/client/partition
+github.com/metal-stack/metal-go/api/client/project
+github.com/metal-stack/metal-go/api/client/size
+github.com/metal-stack/metal-go/api/client/switch_operations
+github.com/metal-stack/metal-go/api/models
+# github.com/metal-stack/security v0.3.0
+github.com/metal-stack/security
+# github.com/mitchellh/mapstructure v1.1.2
+github.com/mitchellh/mapstructure
+# github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd
+github.com/modern-go/concurrent
+# github.com/modern-go/reflect2 v1.0.1
+github.com/modern-go/reflect2
+# github.com/pkg/errors v0.9.1
+github.com/pkg/errors
+# github.com/sirupsen/logrus v1.4.2
+github.com/sirupsen/logrus
+# github.com/spf13/cobra v1.0.0
+github.com/spf13/cobra
+# github.com/spf13/pflag v1.0.5
+github.com/spf13/pflag
+# go.mongodb.org/mongo-driver v1.3.0
+go.mongodb.org/mongo-driver/bson
+go.mongodb.org/mongo-driver/bson/bsoncodec
+go.mongodb.org/mongo-driver/bson/bsonoptions
+go.mongodb.org/mongo-driver/bson/bsonrw
+go.mongodb.org/mongo-driver/bson/bsontype
+go.mongodb.org/mongo-driver/bson/primitive
+go.mongodb.org/mongo-driver/x/bsonx/bsoncore
+# golang.org/x/net v0.0.0-20200226121028-0de0cce0169b
+golang.org/x/net/context
+golang.org/x/net/idna
+# golang.org/x/sys v0.0.0-20191022100944-742c48ecaeb7
+golang.org/x/sys/unix
+# golang.org/x/text v0.3.2
+golang.org/x/text/secure/bidirule
+golang.org/x/text/transform
+golang.org/x/text/unicode/bidi
+golang.org/x/text/unicode/norm
+golang.org/x/text/width
+# gopkg.in/yaml.v2 v2.2.8
+gopkg.in/yaml.v2
+# k8s.io/apimachinery v0.18.3
+k8s.io/apimachinery/pkg/util/clock
+k8s.io/apimachinery/pkg/util/runtime
+k8s.io/apimachinery/pkg/util/wait
+# k8s.io/client-go v0.16.4
+k8s.io/client-go/util/cert
+k8s.io/client-go/util/keyutil
+# k8s.io/klog v1.0.0
+k8s.io/klog
