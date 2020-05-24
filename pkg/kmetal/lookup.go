@@ -2,6 +2,8 @@ package kmetal
 
 import (
 	"fmt"
+	"reflect"
+	"strings"
 
 	"github.com/gardener/controller-manager-library/pkg/logger"
 	metalgo "github.com/metal-stack/metal-go"
@@ -88,6 +90,40 @@ func p(s *string) string {
 		return ""
 	}
 	return *s
+}
+
+func FillMetadataByFields(m *models.V1MachineResponse, fields Fields, metadata map[string]interface{}) {
+	for n, f := range fields {
+		value, err := f.Get(m)
+		if err == nil && value != nil {
+			t := f.Type()
+			v := reflect.ValueOf(value)
+			for t.Kind() == reflect.Ptr {
+				v = v.Elem()
+				t = t.Elem()
+			}
+
+			// TODO: extend fieldpath to handle maps
+			path := strings.Split(n, ".")
+			m := map[string]interface{}(metadata)
+			for _, c := range path[:len(path)-1] {
+				if c == "" {
+					continue
+				}
+				next := m[c]
+				if next == nil {
+					next = map[string]interface{}{}
+					m[c] = next
+				}
+				if f, ok := next.(map[string]interface{}); ok {
+					m = f
+				} else {
+					return
+				}
+			}
+			m[path[len(path)-1]] = v.Interface()
+		}
+	}
 }
 
 func FillMetadata(m *models.V1MachineResponse, metadata map[string]interface{}) {

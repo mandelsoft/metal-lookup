@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/emicklei/go-restful"
 	"github.com/gardener/controller-manager-library/pkg/config"
@@ -14,7 +15,7 @@ import (
 	"github.com/gardener/controller-manager-library/pkg/server"
 	metalgo "github.com/metal-stack/metal-go"
 	"github.com/spf13/cobra"
-	"k8s.io/utils/strings"
+	kstrings "k8s.io/utils/strings"
 
 	"github.com/mandelsoft/kmetal/pkg/command"
 	"github.com/mandelsoft/kmetal/pkg/kmetal"
@@ -26,16 +27,33 @@ var Version = "dev-version"
 type Config struct {
 	MetalConfig string
 	client.DriverConfig
-	Port int
+
+	fields []string
+	Fields kmetal.Fields
 }
 
 func (this *Config) AddOptionsToSet(set config.OptionSet) {
-	set.AddIntOption(&this.Port, "port", "", 8080, "server port")
 	set.AddStringOption(&this.MetalConfig, "metalconfig", "", "", "config file for metal-api")
+	set.AddStringArrayOption(&this.fields, "field", "", nil, "additional fields (<name>=<path>)")
 	this.DriverConfig.AddOptionsToSet(set)
 }
 
 func (this *Config) Evaluate() error {
+	this.Fields = kmetal.Fields{}
+	for _, f := range this.fields {
+		if i := strings.Index(f, "="); i > 0 {
+			n := f[:i]
+			if !strings.HasPrefix(n, ".") {
+				n = "." + n
+			}
+			err := this.Fields.Add(n, f[i+1:])
+			if err != nil {
+				return err
+			}
+		} else {
+			return fmt.Errorf("invalid field spec: %s", f)
+		}
+	}
 	return this.DriverConfig.Evaluate()
 }
 
@@ -65,7 +83,7 @@ func doit(ctx context.Context, src config.OptionSource) error {
 		return err
 	}
 	logger.Infof("Driver: %s", access.DriverURL)
-	logger.Infof("HMAC  : %s...", strings.ShortenString(access.HMAC, 3))
+	logger.Infof("HMAC  : %s...", kstrings.ShortenString(access.HMAC, 3))
 
 	driver, err := client.NewDriver(access)
 	if err != nil {
@@ -74,7 +92,7 @@ func doit(ctx context.Context, src config.OptionSource) error {
 
 	ctx = ctxutil.WaitGroupContext(ctx)
 	s := server.NewHTTPServer(ctx, logger, "metal-lookup")
-	s.Register("/lookup", NewLookupHandler(ctx, driver).Lookup)
+	s.Register("/lookup", NewLookupHandler(ctx, driver, cfg.Fields).Lookup)
 	s.Register("/healthz", Healthz)
 
 	s.Start(nil, scfg.BindAddress, scfg.ServerPortHTTP)
@@ -88,14 +106,16 @@ func Healthz(w http.ResponseWriter, r *http.Request) {
 
 type LookupHandler struct {
 	ctx    context.Context
+	fields kmetal.Fields
 	logger logger.LogContext
 	driver *metalgo.Driver
 }
 
-func NewLookupHandler(ctx context.Context, driver *metalgo.Driver) *LookupHandler {
+func NewLookupHandler(ctx context.Context, driver *metalgo.Driver, fields kmetal.Fields) *LookupHandler {
 	return &LookupHandler{
 		ctx:    ctx,
 		logger: logger.New(),
+		fields: fields,
 		driver: driver,
 	}
 }
@@ -146,7 +166,7 @@ func (this *LookupHandler) lookup(w http.ResponseWriter, r *http.Request) error 
 			return fail(w, http.StatusBadRequest, "invalid uuid")
 		}
 	}
-	logger.Infof("lookup uuud: %s, macs: %s", uuid, macs)
+	logger.Infof("lookup uuid: %s, macs: %s", uuid, macs)
 	machine, err := kmetal.Lookup(this.logger, this.driver, uuid, macs)
 	if err != nil {
 		return fail(w, http.StatusBadRequest, "cannot lookup: %s", err)
@@ -154,6 +174,7 @@ func (this *LookupHandler) lookup(w http.ResponseWriter, r *http.Request) error 
 
 	if machine != nil {
 		kmetal.FillMetadata(machine, metadata)
+		kmetal.FillMetadataByFields(machine, this.fields, metadata)
 	}
 
 	data, err := json.Marshal(metadata)
