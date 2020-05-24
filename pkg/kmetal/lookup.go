@@ -113,6 +113,17 @@ func FillMetadata(m *models.V1MachineResponse, metadata map[string]interface{}) 
 	}
 	if m.Allocation != nil {
 		attributes["Description"] = m.Allocation.Description
+		if m.Allocation.Image != nil {
+			if m.Allocation.Image.URL != "" {
+				attributes["imageURL"] = m.Allocation.Image.URL
+			}
+			if m.Allocation.Image.Name != "" {
+				attributes["imageName"] = m.Allocation.Image.Name
+			}
+			if m.Allocation.Project != nil {
+				attributes["project"] = *m.Allocation.Project
+			}
+		}
 	}
 	if m.Bios != nil {
 		attributes["vendor"] = p(m.Bios.Vendor)

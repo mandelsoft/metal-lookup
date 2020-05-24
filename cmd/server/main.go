@@ -153,7 +153,7 @@ func (this *LookupHandler) Lookup(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(err.Error() + "\n"))
 		return
 	}
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", restful.MIME_JSON)
+	w.WriteHeader(http.StatusOK)
 	w.Write(data)
 }
