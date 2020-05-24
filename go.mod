@@ -10,4 +10,5 @@ require (
 	github.com/spf13/cobra v1.0.0
 	gopkg.in/yaml.v2 v2.2.8
 	k8s.io/apimachinery v0.18.3 // indirect
+	k8s.io/utils v0.0.0-20190801114015-581e00157fb1
 )

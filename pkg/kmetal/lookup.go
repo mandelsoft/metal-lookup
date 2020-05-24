@@ -10,6 +10,33 @@ import (
 
 const Mega = 1024 * 1024
 
+const UUID = "uuid"
+const MACS_IN = "__mac__"
+
+const ATTRIBUTES = "attributes"
+
+const MACS = "macs"
+const SPECIAL_NIC = "lo"
+const MACS_REGULAR = "regular"
+
+const DISKS = "disks"
+const DSK_NAME = "name"
+const DSK_SIZE = "size"
+const DSK_PRIMARY = "primary"
+
+const STATE = "state"
+const CORES = "cores"
+const MEMORY = "memory"
+const DESC = "description"
+const PROJECT = "project"
+const VENDOR = "vendor"
+const VERSION = "bios"
+const IMAGE_NAME = "imageName"
+const IMAGE_URL = "imageURL"
+
+const MEM_SCALE = Mega
+const DSK_SCALE = Mega
+
 func Lookup(logger logger.LogContext, driver *metalgo.Driver, uuid string, macs []string) (*models.V1MachineResponse, error) {
 	mfr := &metalgo.MachineFindRequest{}
 	if uuid != "" {
@@ -38,7 +65,7 @@ func Lookup(logger logger.LogContext, driver *metalgo.Driver, uuid string, macs 
 				mismatch := ""
 				for _, m := range resp.Machines {
 					if m.ID != nil {
-						if *m.ID == "uuid" {
+						if *m.ID == uuid {
 							return m, nil
 						}
 						mismatch = *m.ID
@@ -64,15 +91,16 @@ func p(s *string) string {
 }
 
 func FillMetadata(m *models.V1MachineResponse, metadata map[string]interface{}) {
+	metadata[UUID] = p(m.ID)
 	attributes := map[string]interface{}{}
 	if m.Hardware != nil {
 		macs := map[string]interface{}{}
 		list := []string{}
 		for _, n := range m.Hardware.Nics {
 			if n.Mac != nil {
-				if p(n.Name) == "lo" {
+				if p(n.Name) == SPECIAL_NIC {
 					if p(n.Mac) != "" {
-						macs["lo"] = []string{p(n.Mac)}
+						macs[SPECIAL_NIC] = []string{p(n.Mac)}
 					}
 				} else {
 					if p(n.Mac) != "" {
@@ -81,53 +109,53 @@ func FillMetadata(m *models.V1MachineResponse, metadata map[string]interface{}) 
 				}
 			}
 		}
-		macs["regular"] = list
-		metadata["macs"] = macs
+		macs[MACS_REGULAR] = list
+		attributes[MACS] = macs
 
 		if m.Hardware.CPUCores != nil {
-			attributes["cores"] = *m.Hardware.CPUCores
+			attributes[CORES] = *m.Hardware.CPUCores
 		}
 		if m.Hardware.Memory != nil {
-			attributes["memory"] = *m.Hardware.Memory / Mega
+			attributes[MEMORY] = *m.Hardware.Memory / MEM_SCALE
 		}
 		disks := []interface{}{}
 		for _, d := range m.Hardware.Disks {
 			disk := map[string]interface{}{}
 			if d.Name != nil {
-				disk["name"] = *d.Name
+				disk[DSK_NAME] = *d.Name
 			}
 			if d.Size != nil {
-				disk["size"] = *d.Size / Mega
+				disk[DSK_SIZE] = *d.Size / DSK_SCALE
 			}
 			if d.Primary != nil {
-				disk["primary"] = *d.Primary
+				disk[DSK_PRIMARY] = *d.Primary
 			} else {
-				disk["primary"] = false
+				disk[DSK_PRIMARY] = false
 			}
 			disks = append(disks, disk)
 		}
-		attributes["disks"] = disks
+		attributes[DISKS] = disks
 	}
 	if m.State != nil {
-		attributes["state"] = *m.State.Value
+		attributes[STATE] = *m.State.Value
 	}
 	if m.Allocation != nil {
-		attributes["Description"] = m.Allocation.Description
+		attributes[DESC] = m.Allocation.Description
 		if m.Allocation.Image != nil {
 			if m.Allocation.Image.URL != "" {
-				attributes["imageURL"] = m.Allocation.Image.URL
+				attributes[IMAGE_URL] = m.Allocation.Image.URL
 			}
 			if m.Allocation.Image.Name != "" {
-				attributes["imageName"] = m.Allocation.Image.Name
+				attributes[IMAGE_NAME] = m.Allocation.Image.Name
 			}
 			if m.Allocation.Project != nil {
-				attributes["project"] = *m.Allocation.Project
+				attributes[PROJECT] = *m.Allocation.Project
 			}
 		}
 	}
 	if m.Bios != nil {
-		attributes["vendor"] = p(m.Bios.Vendor)
-		attributes["bios-version"] = p(m.Bios.Version)
+		attributes[VENDOR] = p(m.Bios.Vendor)
+		attributes[VERSION] = p(m.Bios.Version)
 	}
-	metadata["attributes"] = attributes
+	metadata[ATTRIBUTES] = attributes
 }

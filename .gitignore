@@ -1,5 +1,5 @@
 /local
 /.idea
 
-.sw[pq]
+*.sw[pq]
 
