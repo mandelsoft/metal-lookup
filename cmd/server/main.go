@@ -4,8 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/emicklei/go-restful"
 	"github.com/gardener/controller-manager-library/pkg/config"
@@ -105,18 +107,20 @@ func Healthz(w http.ResponseWriter, r *http.Request) {
 }
 
 type LookupHandler struct {
-	ctx    context.Context
-	fields kmetal.Fields
-	logger logger.LogContext
-	driver *metalgo.Driver
+	ctx        context.Context
+	fields     kmetal.Fields
+	logger     logger.LogContext
+	driver     *metalgo.Driver
+	partitions *kmetal.Partitions
 }
 
 func NewLookupHandler(ctx context.Context, driver *metalgo.Driver, fields kmetal.Fields) *LookupHandler {
 	return &LookupHandler{
-		ctx:    ctx,
-		logger: logger.New(),
-		fields: fields,
-		driver: driver,
+		ctx:        ctx,
+		logger:     logger.New(),
+		fields:     fields,
+		driver:     driver,
+		partitions: kmetal.NewPartitions(driver, 10*time.Minute),
 	}
 }
 
@@ -129,6 +133,7 @@ func (this *LookupHandler) Lookup(w http.ResponseWriter, r *http.Request) {
 
 func fail(w http.ResponseWriter, status int, msg string, args ...interface{}) error {
 	err := fmt.Errorf(msg, args...)
+	logger.Infof("error: %s", err)
 	w.WriteHeader(status)
 	w.Write([]byte(err.Error() + "\n"))
 	return err
@@ -173,8 +178,55 @@ func (this *LookupHandler) lookup(w http.ResponseWriter, r *http.Request) error 
 	}
 
 	if machine != nil {
-		kmetal.FillMetadata(machine, metadata)
-		kmetal.FillMetadataByFields(machine, this.fields, metadata)
+		kmetal.FillMetadata(this.logger, machine, metadata)
+		kmetal.FillMetadataByFields(this.logger, machine, this.fields, metadata)
+	}
+
+	requester := []net.IP{}
+	e = metadata[kmetal.FORWARDED_IN]
+	if e != nil {
+		if l, ok := e.([]interface{}); ok {
+			for _, s := range l {
+				if m, ok := s.(string); ok {
+					ip := net.ParseIP(m)
+					if ip != nil {
+						requester = append(requester, ip)
+					} else {
+						this.logger.Errorf("cannot parse ip %s", m)
+					}
+				}
+			}
+		}
+	}
+	e = metadata[kmetal.ORIGIN]
+	if e != nil {
+		if m, ok := e.(string); ok {
+			ip := net.ParseIP(m)
+			if ip != nil {
+				requester = append(requester, ip)
+			}
+		}
+	}
+
+	this.logger.Infof("looking up partition for requesters %+v", requester)
+	partition, err := this.partitions.LookupForRequester(requester...)
+	if err != nil {
+		return err
+	}
+	if partition == nil {
+		e = metadata[kmetal.PARTITION_IN]
+		if e != nil {
+			if m, ok := e.(string); ok {
+				partition, err = this.partitions.Lookup(m)
+				if err != nil {
+					logger.Errorf("lookup of partition %s failed: %s", m, err)
+				}
+			}
+		}
+	}
+
+	if partition != nil {
+		kmetal.FillPartitionMetadata(this.logger, partition, metadata)
 	}
 
 	data, err := json.Marshal(metadata)
