@@ -32,9 +32,12 @@ type Config struct {
 
 	fields []string
 	Fields kmetal.Fields
+
+	TTL time.Duration
 }
 
 func (this *Config) AddOptionsToSet(set config.OptionSet) {
+	set.AddDurationOption(&this.TTL, "ttl", "", 10*time.Minute, "ttl for partition cache for metal-api")
 	set.AddStringOption(&this.MetalConfig, "metalconfig", "", "", "config file for metal-api")
 	set.AddStringArrayOption(&this.fields, "field", "", nil, "additional fields (<name>=<path>)")
 	this.DriverConfig.AddOptionsToSet(set)
@@ -94,7 +97,7 @@ func doit(ctx context.Context, src config.OptionSource) error {
 
 	ctx = ctxutil.WaitGroupContext(ctx)
 	s := server.NewHTTPServer(ctx, logger, "metal-lookup")
-	s.Register("/lookup", NewLookupHandler(ctx, driver, cfg.Fields).Lookup)
+	s.Register("/lookup", NewLookupHandler(ctx, driver, cfg.TTL, cfg.Fields).Lookup)
 	s.Register("/healthz", Healthz)
 
 	s.Start(nil, scfg.BindAddress, scfg.ServerPortHTTP)
@@ -114,13 +117,13 @@ type LookupHandler struct {
 	partitions *kmetal.Partitions
 }
 
-func NewLookupHandler(ctx context.Context, driver *metalgo.Driver, fields kmetal.Fields) *LookupHandler {
+func NewLookupHandler(ctx context.Context, driver *metalgo.Driver, ttl time.Duration, fields kmetal.Fields) *LookupHandler {
 	return &LookupHandler{
 		ctx:        ctx,
 		logger:     logger.New(),
 		fields:     fields,
 		driver:     driver,
-		partitions: kmetal.NewPartitions(driver, 10*time.Minute),
+		partitions: kmetal.NewPartitions(driver, ttl),
 	}
 }
 
@@ -150,6 +153,8 @@ func (this *LookupHandler) lookup(w http.ResponseWriter, r *http.Request) error 
 	if err != nil {
 		return fail(w, http.StatusBadRequest, "%s", err)
 	}
+
+	this.logger.Infof("REQUEST: %s", metadata)
 
 	macs := []string{}
 	e := metadata[kmetal.MACS_IN]
